@@ -1,0 +1,2004 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI Revision Workbench</title>
+  <style>
+/* Design tokens */
+:root {
+  color-scheme: light;
+  --canvas: #f5f3ef;
+  --paper: #fffefd;
+  --ink: #232538;
+  --muted: #565b70;
+  --line: #dfdde7;
+  --navy: #443a77;
+  --navy-dark: #312853;
+  --blue-wash: #eeebf7;
+  --ochre: #87551e;
+  --warm-wash: #f7ecda;
+  --red: #7a382e;
+  --red-wash: #f7e7e1;
+  --green: #285b48;
+  --green-wash: #e4efe7;
+  --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+}
+
+/* Base elements and shared layout */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: linear-gradient(135deg, #eeebf7 0, var(--canvas) 440px);
+  min-height: 100vh;
+  color: var(--ink);
+  font: 14px/1.6 var(--sans);
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+button,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  min-height: 38px;
+  padding: 7px 11px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  border-color: #a9adb1;
+  background: #f2f4f5;
+}
+
+:where(button, input, select, textarea, summary):focus-visible {
+  outline: 2px solid #386784;
+  outline-offset: 3px;
+}
+
+button:disabled {
+  cursor: default;
+  opacity: .5;
+}
+
+button.primary {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: #fff;
+  font-weight: 650;
+}
+
+button.primary:hover:not(:disabled) {
+  background: var(--navy-dark);
+  border-color: var(--navy-dark);
+}
+
+.wrap {
+  width: min(1480px, 100%);
+  margin-inline: auto;
+  padding-inline: clamp(18px, 4vw, 54px);
+}
+
+.bar {
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+}
+
+.bar .wrap,
+.panel-head,
+.toolbar,
+.actions,
+.entry {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.tag {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.hero {
+  padding: clamp(28px, 4vw, 50px) 0 24px;
+}
+
+.hero h1 {
+  font: 500 clamp(34px, 5vw, 52px)/1.04 var(--serif);
+  letter-spacing: -.04em;
+}
+
+.hero p {
+  margin-top: 8px;
+  color: var(--muted);
+}
+
+.goals {
+  min-inline-size: 0;
+  margin: 0 0 19px;
+  padding: 9px 15px 12px;
+  border: 1px solid #d5d0c3;
+}
+
+.goals legend {
+  padding: 0 7px;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.goal-options {
+  display: grid;
+  gap: 5px;
+}
+
+.goal-options label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 26px;
+  cursor: pointer;
+}
+
+.goal-options input,
+.batch-option input {
+  accent-color: var(--navy);
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1.06fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 18px;
+}
+
+.panel {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--paper);
+  box-shadow: 0 8px 26px #30254d0a;
+}
+
+.panel-head {
+  justify-content: space-between;
+  padding: 15px 20px;
+  border-bottom: 1px solid var(--line);
+}
+
+.panel-head h2 {
+  font: 650 15px/1.35 var(--sans);
+}
+
+dialog h2 {
+  font: 600 24px/1.15 var(--serif);
+}
+
+.content {
+  padding: 18px 20px;
+}
+
+.muted,
+.status,
+.progress {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.progress {
+  color: var(--navy);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.segment {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.segment button {
+  min-height: 35px;
+}
+
+.modes {
+  padding-bottom: 12px;
+}
+
+.modes button {
+  border-color: transparent;
+  background: transparent;
+  font-size: 12px;
+}
+
+.modes button[aria-pressed="true"] {
+  border-color: #c6d4df;
+  background: var(--blue-wash);
+  color: var(--navy);
+  font-weight: 700;
+}
+
+.draft button {
+  display: inline;
+  min-height: 0;
+  padding: 0 2px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: inset 0 -1px #a7adb1;
+  font: inherit;
+  text-align: left;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.draft button:hover:not(:disabled) {
+  background: var(--blue-wash);
+}
+
+.draft mark {
+  background: #efd498;
+  color: var(--ink);
+  padding-inline: 2px;
+}
+
+.toolbar {
+  margin-top: 13px;
+  gap: 6px;
+}
+
+.toolbar button,
+.format-controls button,
+.entry button {
+  min-height: 34px;
+  font-size: 12px;
+}
+
+.toolbar #reset {
+  margin-left: auto;
+  border-color: transparent;
+  color: var(--muted);
+}
+
+.status {
+  min-height: 20px;
+  margin-top: 5px;
+  color: var(--navy);
+}
+
+.queue-status {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+#suggestion-detail {
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+}
+
+#suggestion-detail h3 {
+  color: var(--ink);
+  font: 600 22px/1.15 var(--serif);
+}
+
+#suggestion-detail h3+p,
+.goal-note:not(:empty) {
+  margin-top: 4px;
+}
+
+.goal-note {
+  color: var(--ochre);
+  font-size: 12px;
+}
+
+.compare {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 11px 0;
+}
+
+.quote b {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  color: var(--muted);
+}
+
+.quote p {
+  margin-top: 4px;
+  font: 16px/1.45 var(--serif);
+}
+
+.quote p,
+.batch-option small {
+  white-space: pre-wrap;
+}
+
+del {
+  background: var(--red-wash);
+  color: var(--red);
+}
+
+ins {
+  background: var(--green-wash);
+  color: var(--green);
+  text-decoration-thickness: 1px;
+}
+
+.hint,
+.reply {
+  padding: 9px 12px;
+  margin: 10px 0;
+  border-left: 2px solid #7994aa;
+  background: var(--blue-wash);
+}
+
+#evidence-note {
+  border-color: #bd905a;
+  background: var(--warm-wash);
+}
+
+.hint b,
+.reply b {
+  margin-right: 6px;
+  color: var(--navy);
+  font-size: 12px;
+}
+
+details {
+  border-top: 1px solid var(--line);
+  padding: 8px 0;
+}
+
+summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--navy);
+}
+
+details p {
+  margin-top: 6px;
+  color: var(--muted);
+}
+
+#evidence-toggle {
+  margin: 5px 0 10px;
+}
+
+#evidence-toggle[aria-pressed="true"] {
+  border-color: #bc915b;
+  background: var(--warm-wash);
+}
+
+.actions {
+  justify-content: flex-start;
+  margin-top: 9px;
+  gap: 6px;
+}
+
+.actions label {
+  max-width: 100%;
+}
+
+.actions select {
+  max-width: 100%;
+  padding: 6px;
+  border: 1px solid #aab4bc;
+  border-radius: 8px;
+  color: var(--navy);
+  background: var(--paper);
+}
+
+.manual {
+  display: block;
+  width: 100%;
+  min-height: 80px;
+  margin: 5px 0;
+  padding: 9px;
+  border: 1px solid #aab4bc;
+  border-radius: 8px;
+  color: inherit;
+  background: var(--paper);
+}
+
+.journal {
+  margin: 18px 0 12px;
+}
+
+.journal .content {
+  padding-block: 10px;
+}
+
+.entry {
+  justify-content: space-between;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.entry:last-child {
+  border-bottom: 0;
+}
+
+.entry span {
+  flex: 1;
+}
+
+.empty {
+  color: var(--muted);
+}
+
+footer {
+  margin-bottom: 24px;
+}
+
+dialog {
+  width: min(calc(100% - 32px), 540px);
+  max-height: 90vh;
+  padding: 19px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--ink);
+  background: var(--paper);
+}
+
+dialog::backdrop {
+  background: #1a2735a6;
+}
+
+dialog h2 {
+  margin-bottom: 8px;
+}
+
+.batch-option {
+  display: flex;
+  align-items: start;
+  gap: 9px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.batch-option input {
+  margin-top: 5px;
+}
+
+.batch-option small {
+  display: block;
+  color: var(--muted);
+}
+
+/* Navigation and page visibility */
+.site-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
+.site-nav a {
+  display: flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.site-nav a:hover,
+.site-nav a[aria-current="page"] {
+  color: var(--navy);
+  background: var(--blue-wash);
+}
+
+.site-nav a[aria-current="page"] {
+  font-weight: 700;
+}
+
+a:focus-visible {
+  outline: 2px solid #386784;
+  outline-offset: 3px;
+}
+
+.page {
+  padding-bottom: 18px;
+}
+
+main>.page:where(:not(#overview)) {
+  display: none;
+}
+
+main>.page:target {
+  display: block;
+}
+
+main:has(> .page:not(#overview):target)>#overview {
+  display: none;
+}
+
+.action-link {
+  display: inline-block;
+  padding: 7px 11px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--navy);
+  text-decoration: none;
+}
+
+.action-link.primary {
+  border-color: var(--navy);
+  background: var(--navy);
+  color: white;
+  font-weight: 650;
+}
+
+.action-link:hover {
+  box-shadow: inset 0 0 0 1px currentColor;
+}
+
+html:not(.interactive) [data-interactive] {
+  display: none;
+}
+
+.history-content h2 {
+  font: 600 21px/1.15 var(--serif);
+}
+
+.status-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.status-list .queue-status {
+  font-size: 12px;
+}
+
+.page .journal {
+  margin-top: 0;
+}
+
+/* Writing and history surfaces */
+.bar .wrap {
+  min-height: 66px;
+  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 24px;
+}
+
+#draft-form label {
+  display: block;
+  font-weight: 680;
+  margin-bottom: 6px;
+}
+
+#input-help {
+  margin: 8px 0;
+}
+
+#draft-form .actions {
+  margin-top: 15px;
+}
+
+#draft-form .action-link {
+  font-size: 13px;
+}
+
+.history-content {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.history-content section+section {
+  border-left: 1px solid var(--line);
+  padding-left: 14px;
+}
+
+.export-panel pre {
+  max-width: 72ch;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin: 0 0 20px;
+  font: 19px/1.8 var(--serif);
+}
+
+#input-status:not(:empty) {
+  margin-top: 7px;
+  color: var(--navy);
+}
+
+/* Review and suggestion states */
+.review-title {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.review-title .action-link {
+  background: white;
+}
+
+.review-workspace {
+  grid-template-columns: minmax(180px, .63fr) minmax(0, 1.6fr) minmax(0, 1.38fr);
+  gap: 12px;
+}
+
+.review-queue .panel-head {
+  border-bottom: 0;
+  padding-bottom: 5px;
+}
+
+.queue-progress {
+  padding: 3px 14px 12px;
+}
+
+.queue-progress progress {
+  display: block;
+  width: 100%;
+  height: 6px;
+  margin-top: 7px;
+  accent-color: var(--navy);
+}
+
+#queue {
+  gap: 3px;
+  display: grid;
+  padding: 0 7px;
+  max-height: 440px;
+  overflow: auto;
+}
+
+#queue button {
+  flex: 1 0 auto;
+  text-align: left;
+  padding: 7px 9px;
+  color: var(--ink);
+  font-size: 12px;
+  border-radius: 5px;
+  width: 100%;
+  border-color: transparent;
+  background: transparent;
+  border-left: 3px solid transparent;
+  font-weight: 700;
+}
+
+#queue button:hover:not(:disabled) {
+  background: #f3f3fb;
+}
+
+#queue button[aria-pressed="true"] {
+  background: var(--blue-wash);
+  border-color: transparent transparent transparent var(--navy);
+  box-shadow: none;
+}
+
+.queue-description {
+  display: block;
+  font-weight: 400;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+#queue .queue-status {
+  display: inline-block;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+#queue button[data-decision="applied"] .queue-status {
+  color: #2e664a;
+}
+
+#queue button[data-decision="deferred"] .queue-status {
+  color: #86551c;
+}
+
+.format-controls {
+  display: flex;
+  margin: 10px 0 0;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px 9px;
+  padding: 0 12px 10px;
+}
+
+.format-controls button {
+  width: 100%;
+}
+
+.draft-sheet {
+  min-height: 340px;
+  border: 1px solid #e4ded1;
+  border-left: 3px solid #c8ac84;
+  padding: clamp(15px, 2vw, 28px);
+  background: #fcfbf8;
+  border-color: #e2e7df;
+  border-left-color: #b6b0d3;
+}
+
+.draft {
+  font: clamp(17px, 1.7vw, 21px)/1.9 var(--serif);
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.draft button[aria-pressed="true"] {
+  background: #e8e6f7;
+  box-shadow: inset 0 -2px #6964a4;
+}
+
+#suggestion-detail {
+  padding-top: 0;
+  border-top: 0;
+}
+
+#suggestion-detail h3 {
+  font-size: 24px;
+}
+
+.quote {
+  border: 1px solid var(--line);
+  background: #f9f8f4;
+  padding: 9px 11px;
+  overflow-wrap: anywhere;
+  border-radius: 5px;
+}
+
+.hint,
+.reply {
+  border-left-color: #827bb5;
+}
+
+.actions button {
+  padding-inline: 9px;
+}
+
+.export-panel {
+  margin: 0 0 15px;
+}
+
+.export-panel .content {
+  background: #fdfbf6;
+  border-radius: 0 0 14px 14px;
+}
+
+#history .journal {
+  margin-bottom: 18px;
+}
+
+.queue-tools {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 12px 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.queue-tools select {
+  min-width: 0;
+  flex: 1;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--paper);
+  color: var(--ink);
+  padding: 5px;
+}
+
+.decision-note {
+  display: block;
+  margin-top: 12px;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.decision-note textarea {
+  min-height: 58px;
+  font-weight: 400;
+}
+
+.event-note {
+  display: block;
+  margin-top: 4px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.risk-summary {
+  margin: 8px 0;
+}
+
+.risk-compare {
+  display: grid;
+  gap: 7px;
+  margin: 12px 0;
+  padding: 10px 12px;
+  background: var(--warm-wash);
+}
+
+#risk-dialog form {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+/* Planning and writing */
+.writing-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 18px;
+}
+
+.writing-sidebar {
+  display: grid;
+  gap: 15px;
+}
+
+#completion {
+  display: block;
+  width: 100%;
+  height: 8px;
+  margin: 8px 0 14px;
+  accent-color: var(--navy);
+}
+
+#reference-heading+a {
+  color: var(--navy);
+}
+
+.plan-fields {
+  display: grid;
+  gap: 14px;
+}
+
+.plan-fields label {
+  display: block;
+  font-weight: 650;
+}
+
+.plan-fields textarea {
+  resize: vertical;
+  min-height: 70px;
+  font-weight: 400;
+}
+
+#draft-input {
+  resize: vertical;
+  margin: 0;
+  min-height: clamp(250px, 43vh, 520px);
+  background: #fcfbf7;
+  border-color: var(--line);
+  padding: clamp(12px, 2.6vw, 30px);
+  font: 19px/1.8 var(--serif);
+}
+
+.editor-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 14px;
+  margin-top: 9px;
+}
+
+#plan-reference {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+#plan-reference dt {
+  font-size: 12px;
+  font-weight: 650;
+}
+
+#plan-reference dd {
+  margin: 2px 0 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+#finish-progress {
+  margin: 0 0 12px;
+}
+
+#finish-status {
+  margin-top: 6px;
+}
+
+@media (max-width: 420px) {
+  .site-nav a {
+    padding-inline: 5px;
+  }
+}
+
+/* Responsive layouts */
+@media (max-width: 1060px) {
+  .review-workspace {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .review-queue {
+    grid-column: 1/-1;
+  }
+
+  #queue {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow: auto;
+    max-height: none;
+  }
+
+  #queue button {
+    flex: 0 0 145px;
+    width: auto;
+  }
+
+  .format-controls button {
+    width: auto;
+  }
+}
+
+@media (max-width: 820px) {
+  .workspace {
+    gap: 12px;
+  }
+
+  .journal {
+    margin-top: 12px;
+  }
+}
+
+@media (max-width: 820px) {
+  .history-content {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .history-content section+section {
+    border: 0;
+    border-top: 1px solid var(--line);
+    padding: 12px 0 0;
+  }
+}
+
+@media (max-width: 820px) {
+  .writing-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 720px) {
+  .review-workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .draft-sheet {
+    min-height: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .bar .wrap {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+    padding-block: 8px;
+  }
+
+  .site-nav {
+    min-height: 42px;
+  }
+}
+
+@media (max-width: 420px) {
+  .wrap {
+    padding-inline: 12px;
+  }
+
+  .content,
+  .panel-head {
+    padding-inline: 12px;
+  }
+
+  .compare {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .toolbar #reset {
+    margin-left: 0;
+  }
+}
+</style>
+</head>
+
+<body>
+  <header class="bar">
+    <div class="wrap">
+      <nav class="site-nav" aria-label="Main navigation">
+        <a id="nav-plan" href="#plan">Plan</a>
+        <a id="nav-overview" href="#overview" aria-current="page">Write</a>
+        <a id="nav-review" href="#review">Review</a>
+        <a id="nav-history" href="#history">History</a>
+        <a id="nav-finish" href="#finish">Finish</a>
+      </nav>
+      <span id="mode-label" class="tag">Sample · simulated AI</span>
+    </div>
+  </header>
+  <main class="wrap">
+    <!-- Plan -->
+    <section id="plan" class="page" aria-labelledby="title-plan">
+      <div class="hero">
+        <h1 id="title-plan" tabindex="-1">Plan your draft</h1>
+        <p>Sketch your argument and keep track of what supports it.</p>
+      </div>
+      <div class="writing-layout" data-interactive>
+        <section class="panel" aria-labelledby="plan-heading">
+          <div class="panel-head">
+            <h2 id="plan-heading">Writing notes</h2>
+          </div>
+          <div class="content">
+            <div class="plan-fields">
+              <label>Audience and purpose<textarea id="plan-purpose" class="manual" maxlength="1500"
+                  placeholder="Who will read this, and what should they take away?"></textarea></label>
+              <label>Main claim<textarea id="plan-claim" class="manual" maxlength="1500"
+                  placeholder="What are you arguing in one sentence?"></textarea></label>
+              <label>Evidence and limits<textarea id="plan-evidence" class="manual" maxlength="2500"
+                  placeholder="What supports the claim? What remains uncertain?"></textarea></label>
+            </div>
+            <p id="plan-save" class="muted" role="status"></p>
+            <div class="actions"><a class="action-link primary" href="#overview">Go to writing</a></div>
+          </div>
+        </section>
+        <fieldset class="panel goals">
+          <legend>Revision goals</legend>
+          <div class="goal-options">
+            <label><input type="checkbox" data-goal="grammar" checked> Correct grammar</label>
+            <label><input type="checkbox" data-goal="concise"> Make wording more concise</label>
+            <label><input type="checkbox" data-goal="academic"> Maintain academic tone</label>
+            <label><input type="checkbox" data-goal="meaning" checked> Preserve meaning and evidence strength</label>
+          </div>
+        </fieldset>
+      </div>
+    </section>
+    <!-- Write -->
+    <section id="overview" class="page" aria-labelledby="title-overview">
+      <div class="hero">
+        <h1 id="title-overview" tabindex="-1">Write your draft</h1>
+      </div>
+      <div class="writing-layout">
+        <section class="panel" aria-labelledby="input-heading" data-interactive>
+          <div class="panel-head">
+            <h2 id="input-heading">Your draft</h2>
+          </div>
+          <div class="content">
+            <form id="draft-form">
+              <label for="draft-input">Write or paste an English draft</label>
+              <textarea id="draft-input" class="manual" rows="7" placeholder="Start writing or paste your draft here…"
+                aria-describedby="input-help" maxlength="25000"></textarea>
+              <div class="editor-meta"><span id="draft-count" class="muted"></span><span id="draft-save"
+                  class="muted"></span></div>
+              <p id="input-help" class="muted">Checks run in your browser and flag common spacing, punctuation and
+                wording issues.</p>
+              <div class="actions"><button class="primary" type="submit">Check my draft</button><button id="sample-load"
+                  type="button">Use sample instead</button></div>
+              <p id="input-status" role="status"></p>
+            </form>
+          </div>
+        </section>
+        <div class="writing-sidebar">
+          <section class="panel" aria-labelledby="reference-heading" data-interactive>
+            <div class="panel-head">
+              <h2 id="reference-heading">Your plan</h2><a href="#plan">Edit plan</a>
+            </div>
+            <div class="content">
+              <p id="plan-empty" class="muted">Add notes in Plan to see them here while you write.</p>
+              <dl id="plan-reference"></dl>
+            </div>
+          </section>
+          <section class="panel" aria-labelledby="sample-heading">
+            <div class="panel-head">
+              <h2 id="sample-heading">Current review</h2>
+            </div>
+            <div class="content">
+              <p id="current-document">Sample research summary · simulated AI</p>
+              <p id="overview-progress" class="progress">0 of 5 reviewed</p>
+              <progress id="completion" value="0" max="5" aria-label="Suggestions reviewed"></progress>
+              <div><a id="start-review" class="action-link primary" href="#review">Start review</a></div>
+            </div>
+          </section>
+
+        </div>
+      </div>
+    </section>
+    <!-- Review -->
+    <section id="review" class="page" aria-labelledby="title-review">
+      <div class="hero review-title">
+        <h1 id="title-review" tabindex="-1">Review your draft</h1><a class="action-link" href="#history">View review
+          history</a>
+      </div>
+      <div class="workspace review-workspace">
+        <section class="panel review-queue" aria-labelledby="queue-heading" data-interactive>
+          <div class="panel-head">
+            <h2 id="queue-heading">Suggestions</h2>
+          </div>
+          <div class="queue-progress"><span id="progress" class="progress">0 of 5 reviewed</span><progress
+              id="review-meter" max="5" value="0" aria-label="Review progress"></progress></div>
+          <div class="queue-tools"><label for="queue-filter">Show</label><select id="queue-filter">
+              <option value="all">All</option>
+              <option value="open">Needs review</option>
+              <option value="resolved">Reviewed</option>
+            </select></div>
+          <nav id="queue" class="segment" aria-label="Suggestions"></nav>
+          <div class="format-controls"><button id="open-batch">Review formatting as a batch</button></div>
+        </section>
+        <section class="panel" aria-labelledby="draft-heading">
+          <div class="panel-head">
+            <h2 id="draft-heading">Sample research summary</h2>
+          </div>
+          <div class="content">
+            <div id="modes" class="segment modes" role="group" aria-label="Draft view"></div>
+            <div class="draft-sheet">
+              <p id="draft" class="draft">The results shows a reduction in processing time. The evaluation so far is
+                limited to a small pilot. The method may improve accuracy on unseen data. We conducted an analysis of
+                the error patterns after the pilot. Future work includes: a larger trial. A follow - up study is
+                planned.</p>
+            </div>
+            <div class="toolbar" data-interactive><button id="copy">Copy revised draft</button><button id="undo"
+                disabled>Undo last decision</button><button id="reset">Restart review</button></div>
+            <p class="status" id="status" role="status"></p>
+          </div>
+        </section>
+        <section class="panel" aria-labelledby="review-heading">
+          <div class="panel-head">
+            <h2 id="review-heading">Change details</h2>
+          </div>
+          <div class="content">
+            <div id="suggestion-detail">
+              <h3>Subject–verb agreement</h3>
+              <div class="compare">
+                <div class="quote"><b>Original</b>
+                  <p>The results <del>shows</del> a reduction in processing time.</p>
+                </div>
+                <div class="quote"><b>AI suggestion</b>
+                  <p>The results <ins>show</ins> a reduction in processing time.</p>
+                </div>
+              </div>
+              <details>
+                <summary>Show full explanation</summary>
+                <p>“Results” is plural, so it takes “show” in the present tense.</p>
+              </details>
+              <noscript>
+                <p class="muted">Open this HTML file in a browser with JavaScript enabled to apply changes and record
+                  decisions.</p>
+              </noscript>
+            </div>
+          </div>
+        </section>
+      </div>
+    </section>
+    <!-- History -->
+    <section id="history" class="page" aria-labelledby="title-history">
+      <div class="hero">
+        <h1 id="title-history" tabindex="-1">Review history</h1>
+      </div>
+      <div class="panel journal">
+        <div class="panel-head"><span id="history-summary" class="muted">0 applied · 0 kept original · 0
+            deferred</span><a class="action-link" href="#finish">View final draft</a></div>
+        <div class="content history-content">
+          <section aria-labelledby="status-heading">
+            <h2 id="status-heading">Suggestion status</h2>
+            <ul id="history-status" class="status-list">
+              <li class="entry">Grammar · Pending</li>
+              <li class="entry">Claim strength · Pending</li>
+              <li class="entry">Clarity · Pending</li>
+              <li class="entry">Spacing · Pending</li>
+              <li class="entry">Punctuation · Pending</li>
+            </ul>
+          </section>
+          <section aria-labelledby="activity-heading">
+            <div class="toolbar">
+              <h2 id="activity-heading">Activity</h2><button id="download-log" type="button" data-interactive>Export
+                review log</button>
+            </div>
+            <div id="log">
+              <p class="empty">No activity yet. Review a suggestion to record your first decision.</p>
+            </div>
+          </section>
+        </div>
+      </div>
+
+    </section>
+    <!-- Finish -->
+    <section id="finish" class="page" aria-labelledby="title-finish">
+      <div class="hero">
+        <h1 id="title-finish" tabindex="-1">Finish your draft</h1>
+      </div>
+      <section class="panel export-panel" aria-labelledby="export-heading" data-interactive>
+        <div class="panel-head">
+          <h2 id="export-heading">Final draft</h2><span id="final-count" class="muted"></span>
+        </div>
+        <div class="content">
+          <p id="finish-progress" class="progress"></p>
+          <pre id="export-text"></pre>
+          <div class="actions">
+            <button class="primary" id="download">Download .txt</button>
+            <button id="copy-final">Copy final draft</button>
+            <button id="edit-final">Continue writing from this version</button>
+            <a class="action-link" href="#review">Back to review</a>
+          </div>
+          <p id="finish-status" class="muted" role="status"></p>
+        </div>
+      </section>
+    </section>
+    <footer class="muted">Review decisions reset when you reload. Writing and planning notes can be saved in this
+      browser.</footer>
+    <!-- Review dialogs -->
+    <dialog id="batch" aria-labelledby="batch-title">
+      <h2 id="batch-title">Approve formatting changes</h2>
+      <p class="muted">Preview each change and select the ones you want to apply.</p>
+      <div id="batch-items"></div>
+      <div class="actions"><button id="apply-batch" class="primary">Apply selected</button><button
+          id="close-batch">Cancel</button></div>
+    </dialog>
+    <dialog id="risk-dialog" aria-labelledby="risk-title" aria-describedby="risk-summary">
+      <h2 id="risk-title">This edit strengthens the claim</h2>
+      <p id="risk-summary" class="risk-summary">The draft describes a small pilot. The suggested wording changes a
+        possibility into a more definite claim.</p>
+      <div class="risk-compare" id="risk-compare"></div>
+      <form method="dialog">
+        <button value="evidence" class="primary" autofocus>Check source evidence</button>
+        <button value="cancel">Back to suggestion</button>
+        <button value="apply">Apply stronger wording</button>
+      </form>
+    </dialog>
+  </main>
+
+  <script>
+'use strict';
+// Sample content and revision goals
+const sampleCases = [
+  {
+    name: 'Grammar', label: 'Subject–verb agreement',
+    before: 'The results shows a reduction in processing time.',
+    proposal: 'The results show a reduction in processing time.',
+    hint: 'Check whether the subject is singular or plural.',
+    full: '“Results” is plural, so it takes “show” in the present tense. The revision keeps the original claim.',
+    check: 'The change fixes agreement while preserving the reported reduction.',
+  },
+  {
+    name: 'Claim strength', label: 'Strength of evidence',
+    before: 'The method may improve accuracy on unseen data.',
+    proposal: 'The method will improve accuracy on unseen data.',
+    hint: 'Compare the certainty expressed by the two verbs.',
+    full: '“May” expresses a possibility. “Will” makes a stronger prediction about unseen data. The preceding sentence says the evaluation is preliminary, so the original qualifier still matters.',
+    check: 'Yes. “Will” makes the claim more definite even though the draft only reports a small pilot.',
+  },
+  {
+    name: 'Clarity', label: 'Wordiness',
+    before: 'We conducted an analysis of the error patterns after the pilot.',
+    proposal: 'We analysed the error patterns after the pilot.',
+    hint: 'Look for a shorter verb that keeps the same action.',
+    full: '“Analysed” expresses the same action more directly. The proposed revision keeps both the object and timing.',
+    check: 'The proposed wording keeps who did the analysis, what they analysed, and when.',
+  }
+];
+const pilot = 'The evaluation so far is limited to a small pilot.';
+sampleCases.push(
+  {
+    name: 'Spacing', label: 'Extra space after colon', formatting: true,
+    before: 'Future work includes:  a larger trial.',
+    proposal: 'Future work includes: a larger trial.',
+    hint: 'Check the spacing immediately after the colon.',
+    full: 'Remove the extra space after the colon. The words stay the same.'
+  },
+  {
+    name: 'Punctuation', label: 'Spaces around a hyphen', formatting: true,
+    before: 'A follow - up study is planned.',
+    proposal: 'A follow-up study is planned.',
+    hint: 'Check the spacing around the hyphen.',
+    full: '“Follow-up” is hyphenated as a modifier, with no spaces around the hyphen.'
+  }
+);
+const rewriteOptions = [
+  {
+    meaning: ['The results show a reduction in processing time.', 'This fixes agreement and preserves the claim.'],
+    concise: ['The results show shorter processing times.', 'This expresses the reduction more concisely.'],
+    grammar: ['The results show a reduction in processing time.', 'Only the verb agreement changes.']
+  },
+  {
+    meaning: ['The method could improve accuracy on unseen data.', '“Could” preserves the uncertainty of the original claim.'],
+    concise: ['The method may improve accuracy on unseen data.', 'The original is already concise. Keeping “on unseen data” preserves the scope of the claim.'],
+    grammar: ['The method may improve accuracy on unseen data.', 'The original is grammatical and can be kept as written.']
+  },
+  {
+    meaning: ['After the pilot, we analysed the error patterns.', 'The same people performed the same analysis at the same time.'],
+    concise: ['We analysed the pilot’s error patterns afterwards.', 'This shorter version ties the error patterns to the pilot. Check that this matches what you meant.'],
+    grammar: ['We conducted an analysis of the error patterns after the pilot.', 'The original is grammatical. Shortening it is an optional style change.']
+  }
+];
+const constraints = { meaning: 'Preserve the original meaning', concise: 'Make it more concise', grammar: 'Correct grammar only' };
+const goalNames = { grammar: 'grammar', concise: 'conciseness', academic: 'academic tone', meaning: 'meaning and evidence strength' };
+const names = { pending: 'Pending', applied: 'Applied', kept: 'Original kept', deferred: 'Deferred' };
+// Review state and local draft checks
+const get = id => document.getElementById(id);
+let cases = sampleCases;
+let source = null;
+const checks = [
+  {    
+name: 'Spacing', label: 'Extra space', pattern: /(?<=\S)[ \t]{2,}(?=\S)/g, replacement: () => ' ',
+    hint: 'Check consecutive spaces within the paragraph.', formatting: true  
+},
+  {    
+name: 'Punctuation', label: 'Space before punctuation', pattern: /[ \t]+(?=[,;!?]|\.(?:\s|$))/g, replacement: () => '',
+    hint: 'In English prose, these punctuation marks normally follow the preceding word directly.', formatting: true  
+},
+  {    
+name: 'Clarity', label: 'Wordy phrase', pattern: /\b(in order to|due to the fact that|at this point in time)\b/gi,
+    replacement: match => {
+      const word = { 'in order to': 'to', 'due to the fact that': 'because', 'at this point in time': 'now' }[match.toLowerCase()];
+      return /^[A-Z]/.test(match) ? word[0].toUpperCase() + word.slice(1) : word;
+    }, hint: 'A shorter phrase may express the same idea. Check the sentence in context.', formatting: false  
+}
+];
+function inspectDraft(text) {
+  const matches = checks.flatMap(check => Array.from(text.matchAll(check.pattern), match => ({
+    start: match.index, before: match[0], proposal: check.replacement(match[0]),
+    name: check.name, label: check.label, formatting: check.formatting, hint: check.hint,
+    full: check.hint, goal: check.formatting ? 'grammar' : 'concise'
+  }))).sort((a, b) => a.start - b.start || a.proposal.length - b.proposal.length || b.before.length - a.before.length);
+  let end = 0;
+  return matches.filter(item => {
+    if (item.start < end) return false;
+    end = item.start + item.before.length;
+    return true;
+  });
+}
+const fresh = () => cases.map(() => ({ decision: 'pending', candidate: 'proposal', reply: '', manual: '', note: '', evidenceChecked: false, confirmed: null }));
+let state = fresh();
+let active = 0;
+let view = 'revised';
+let evidence = false;
+let history = [];
+let undoStack = [];
+// Page navigation
+const pages = ['plan', 'overview', 'review', 'history', 'finish'];
+let currentPage = '';
+function syncPage(focus = false) {
+  const fragment = window.location.hash.slice(1);
+  const next = pages.includes(fragment) ? fragment : 'overview';
+  if (next === currentPage) return;
+  currentPage = next;
+  for (const page of pages) {
+    const link = get('nav-' + page);
+    if (page === next) link.setAttribute('aria-current', 'page');
+    else link.removeAttribute('aria-current');
+  }
+  if (focus) {
+    get('title-' + next).focus({ preventScroll: true });
+    window.scrollTo(0, 0);
+  }
+}
+function goTo(page) {
+  window.location.hash = page;
+  syncPage(true);
+}
+window.addEventListener('hashchange', () => syncPage(true));
+function element(tag, text, className) {
+  const node = document.createElement(tag);
+  if (text !== undefined) node.textContent = text;
+  if (className) node.className = className;
+  return node;
+}
+function button(text, click, className) {
+  const node = element('button', text, className);
+  node.type = 'button';
+  node.addEventListener('click', click);
+  return node;
+}
+// Draft text and change comparison
+function committed(i) { return state[i].confirmed ?? cases[i].before; }
+function candidate(i) {
+  const entry = state[i];
+  if (entry.candidate === 'manual') return entry.manual.trim();
+  if (entry.candidate === 'proposal') return cases[i].proposal;
+  return rewriteOptions[i][entry.candidate][0];
+}
+function candidateLabel(i) {
+  return state[i].candidate === 'proposal' ? (source === null ? 'AI suggestion' : 'Suggested change')
+    : state[i].candidate === 'manual' ? 'Your wording' : constraints[state[i].candidate];
+}
+function draftParts() {
+  if (source === null) return [0, pilot, 1, 2, 3, 4].flatMap((part, i) => i ? [' ', part] : [part]);
+  const parts = [];
+  let offset = 0;
+  cases.forEach((item, i) => {
+    parts.push(source.slice(offset, item.start), i);
+    offset = item.start + item.before.length;
+  });
+  parts.push(source.slice(offset));
+  return parts;
+}
+function draftText(previewIndex = -1, previewText = '') {
+  return draftParts().map(part => typeof part === 'string' ? part
+    : part === previewIndex ? previewText : committed(part)).join('');
+}
+function select(i) {
+  if (i !== active) evidence = false;
+  active = i;
+  render(true);
+  get('suggestion-detail').querySelector('h3').scrollIntoView({ block: 'nearest' });
+}
+function changeParts(original, revised) {
+  let first = 0;
+  let last = 0;
+  while (first < original.length && first < revised.length && original[first] === revised[first]) first++;
+  while (last < original.length - first && last < revised.length - first &&
+    original[original.length - last - 1] === revised[revised.length - last - 1]) last++;
+  return {
+    prefix: original.slice(0, first), removed: original.slice(first, original.length - last),
+    inserted: revised.slice(first, revised.length - last), suffix: original.slice(original.length - last)
+  };
+}
+function appendDiff(node, parts, showRemoved, showInserted) {
+  node.append(parts.prefix);
+  if (showRemoved && parts.removed) node.append(element('del', parts.removed));
+  if (showInserted && parts.inserted) node.append(element('ins', parts.inserted));
+  node.append(parts.suffix);
+}
+// Draft display and review decisions
+function renderDraft() {
+  const modes = { revised: 'Revised', original: 'Original', changes: 'Changes' };
+  get('modes').replaceChildren(...Object.entries(modes).map(([key, label]) => {
+    const option = button(label, () => { view = key; renderDraft(); get('modes').querySelector('[aria-pressed="true"]').focus(); });
+    option.setAttribute('aria-pressed', String(view === key));
+    return option;
+  }));
+  const draft = get('draft');
+  draft.replaceChildren();
+  for (const part of draftParts()) {
+    if (typeof part === 'string') {
+      if (source === null && part.includes(pilot)) {
+        const context = element(evidence ? 'mark' : 'span', part.trim());
+        context.id = 'source-evidence';
+        draft.append(context);
+      } else draft.append(part);
+      continue;
+    }
+    const i = part;
+    const item = cases[i];
+    const wording = view === 'original' ? item.before : committed(i);
+    if (!wording && view !== 'changes') continue;
+    const mark = button(wording, () => select(i));
+    if (view === 'changes' && state[i].confirmed !== null) {
+      mark.replaceChildren();
+      appendDiff(mark, changeParts(item.before, committed(i)), true, true);
+    }
+    mark.setAttribute('aria-pressed', String(i === active));
+    mark.setAttribute('aria-label', 'Review ' + item.name + ': ' + (wording.trim() || 'spacing'));
+    draft.append(mark);
+  }
+}
+function disclosure(title, text) {
+  const detail = element('details');
+  detail.append(element('summary', title), element('p', text));
+  return detail;
+}
+function announce(message) { get('status').textContent = message; }
+function record(index, message, detail = {}) {
+  history.push({ index, message, ...detail });
+}
+function logAction(message, focus = true) {
+  record(active, message);
+  render(focus);
+  announce(cases[active].name + ' · ' + message);
+}
+function makeDecision(indices, decision, message) {
+  const transaction = indices.map(index => ({
+    index, decision: state[index].decision, confirmed: state[index].confirmed
+  }));
+  undoStack.push(transaction);
+  indices.forEach(index => {
+    state[index].decision = decision;
+    state[index].confirmed = decision === 'applied' ? candidate(index) : null;
+    record(index, message, {
+      note: state[index].note.trim(),
+      evidenceChecked: state[index].evidenceChecked,
+      wording: state[index].confirmed ?? cases[index].before
+    });
+  });
+  render(true);
+  announce(message + (indices.length > 1 ? ' · ' + indices.length + ' suggestions' : ' · ' + cases[indices[0]].name));
+}
+function setCandidate(version) {
+  const entry = state[active];
+  entry.candidate = version;
+  entry.reply = '';
+  if (version in constraints) logAction('Requested alternative · ' + constraints[version]);
+  else render(true);
+}
+function showEvidence() {
+  evidence = !evidence;
+  renderDraft();
+  const control = get('evidence-toggle');
+  const note = get('evidence-note');
+  control.setAttribute('aria-pressed', String(evidence));
+  note.hidden = !evidence;
+  if (evidence) {
+    if (!state[active].evidenceChecked) {
+      state[active].evidenceChecked = true;
+      record(active, 'Opened source evidence');
+      render();
+      get('evidence-toggle').focus({ preventScroll: true });
+    }
+    get('source-evidence').scrollIntoView({ block: 'nearest' });
+    announce('Source highlighted · “small pilot” limits how confidently the draft can predict gains on unseen data.');
+  }
+}
+function goalNote(i) {
+  const goals = [...document.querySelectorAll('[data-goal]:checked')].map(input => input.dataset.goal);
+  if (source !== null) return goals.includes(cases[i].goal) ? 'Matches your ' + goalNames[cases[i].goal] + ' goal.' : '';
+  const matches = [
+    ['grammar', 'meaning'], ['meaning', 'academic'], ['concise', 'academic', 'meaning'], [], []
+  ][i].filter(goal => goals.includes(goal));
+  if (i === 1 && state[i].candidate === 'proposal' && goals.includes('meaning')) {
+    return 'Potential goal conflict: “will” strengthens the claim.';
+  }
+  return matches.length ? 'Goals to check: ' + matches.map(goal => goalNames[goal]).join(', ') + '.' : '';
+}
+function updatePreview() {
+  const item = cases[active];
+  if (!item) return;
+  const entry = state[active];
+  const text = candidate(active);
+  const before = get('before');
+  const after = get('after');
+  const parts = changeParts(item.before, text);
+  before.replaceChildren();
+  after.replaceChildren();
+  appendDiff(before, parts, true, false);
+  if (text || item.formatting) appendDiff(after, parts, false, true);
+  else after.textContent = 'Enter wording to preview.';
+  if (item.formatting && !text.trim()) after.textContent = text ? 'One space' : 'Remove spacing';
+  get('goal-note').textContent = goalNote(active);
+  get('apply-current').disabled = (!text && !item.formatting) || text === item.before || entry.confirmed === text;
+  get('paragraph-preview').textContent = draftText(active, text || (item.formatting ? '' : item.before));
+}
+// Suggestion controls and history display
+function renderReview(focus) {
+  const item = cases[active];
+  const entry = state[active];
+  const body = get('suggestion-detail');
+  if (!item) {
+    body.replaceChildren(element('h3', 'No suggestions found'), element('p', 'The current checks found no matches. You can download this draft or make changes in the workspace.', 'muted'));
+    return;
+  }
+  const open = new Set(body.dataset.case === String(active)
+    ? [...body.querySelectorAll('details[open]')].map(node => node.firstChild.textContent) : []);
+  body.dataset.case = active;
+  body.replaceChildren();
+  const heading = element('h3', item.label);
+  heading.tabIndex = -1;
+  const compare = element('div', undefined, 'compare');
+  for (const [id, label] of [['before', 'Original'], ['after', candidateLabel(active)]]) {
+    const quote = element('div', undefined, 'quote');
+    const line = element('p');
+    line.id = id;
+    quote.append(element('b', label), line);
+    compare.append(quote);
+  }
+  const note = element('p', undefined, 'goal-note');
+  note.id = 'goal-note';
+  body.append(heading, element('p', names[entry.decision], 'muted'), note, compare);
+  if (entry.confirmed !== null) body.append(element('p', 'In draft: ' + entry.confirmed, 'muted'));
+  if (entry.candidate === 'proposal') {
+    const hint = element('div', undefined, 'hint');
+    hint.append(element('b', 'Quick hint'), item.hint);
+    body.append(hint, disclosure('Show full explanation', item.full));
+  }
+  if (entry.candidate in constraints) {
+    const reply = element('div', undefined, 'reply');
+    reply.append(element('b', 'Simulated AI reply'), rewriteOptions[active][entry.candidate][1]);
+    body.append(reply);
+  }
+  if (source === null && active === 1) {
+    const control = button('Highlight source evidence', showEvidence);
+    const sourceNote = element('p', 'The preceding sentence limits the evidence to a small pilot. Check whether the proposed wording preserves that uncertainty.', 'hint');
+    control.id = 'evidence-toggle';
+    control.setAttribute('aria-pressed', String(evidence));
+    control.setAttribute('aria-controls', 'evidence-note');
+    sourceNote.id = 'evidence-note';
+    sourceNote.hidden = !evidence;
+    body.append(control, sourceNote);
+  }
+  const paragraph = disclosure('Preview in the full paragraph', '');
+  paragraph.lastChild.id = 'paragraph-preview';
+  body.append(paragraph);
+  if (!item.formatting) {
+    const followUp = element('div', undefined, 'actions');
+    if (source === null) {
+      followUp.append(button('Does this change the meaning?', () => {
+        entry.reply = entry.candidate === 'manual' ? 'Compare your wording with the original for changes in certainty, scope or claims.'
+          : entry.candidate === 'proposal' ? item.check : rewriteOptions[active][entry.candidate][1];
+        logAction('Checked the effect on meaning');
+      }));
+      const label = element('label', 'Request an alternative ');
+      const choices = element('select');
+      choices.append(element('option', 'Choose a constraint'));
+      choices.firstChild.value = '';
+      Object.entries(constraints).forEach(([key, name]) => {
+        const option = element('option', name);
+        option.value = key;
+        choices.append(option);
+      });
+      choices.value = entry.candidate in constraints ? entry.candidate : '';
+      choices.addEventListener('change', () => { if (choices.value) setCandidate(choices.value); });
+      label.append(choices);
+      followUp.append(label);
+    }
+    if (entry.candidate !== 'manual') followUp.append(button('Write my own version', () => {
+      entry.manual = entry.manual || candidate(active);
+      setCandidate('manual');
+      get('manual-edit').focus();
+    }));
+    if (entry.candidate !== 'proposal') followUp.append(button('Show initial suggestion', () => setCandidate('proposal')));
+    body.append(followUp);
+    if (entry.reply) body.append(element('p', entry.reply, 'reply'));
+    if (entry.candidate === 'manual') {
+      const label = element('label', 'Your wording');
+      const editor = element('textarea', undefined, 'manual');
+      editor.id = 'manual-edit';
+      editor.value = entry.manual;
+      editor.addEventListener('input', () => { entry.manual = editor.value; updatePreview(); });
+      label.append(editor);
+      body.append(label);
+    }
+  }
+  if (!item.formatting) {
+    const noteLabel = element('label', 'Decision note (optional)', 'decision-note');
+    const noteInput = element('textarea', undefined, 'manual');
+    noteInput.value = entry.note;
+    noteInput.maxLength = 300;
+    noteInput.placeholder = 'Why would you keep or change this wording?';
+    noteInput.addEventListener('input', () => { entry.note = noteInput.value; });
+    noteLabel.append(noteInput);
+    body.append(noteLabel);
+  }
+  const actions = element('div', undefined, 'actions');
+  const apply = button(entry.candidate === 'manual' ? 'Apply my wording' : entry.candidate === 'proposal' ? 'Apply suggestion' : 'Apply alternative',
+    () => applyCurrent(), 'primary');
+  apply.id = 'apply-current';
+  const keep = button('Keep original', () => makeDecision([active], 'kept', 'Kept original'));
+  keep.disabled = entry.decision === 'kept';
+  const defer = button('Review later', () => makeDecision([active], 'deferred', 'Deferred'));
+  defer.disabled = entry.decision === 'deferred' || entry.confirmed !== null;
+  actions.append(apply, keep, defer);
+  if (entry.confirmed !== null) actions.append(button('Revert this edit', () => makeDecision([active], 'pending', 'Reverted edit')));
+  const nextOpen = [...cases.keys()].find(i => i > active && needsReview(i))
+    ?? [...cases.keys()].find(i => i < active && needsReview(i));
+  if (nextOpen !== undefined) actions.append(button('Next unreviewed', () => {
+    if (get('queue-filter').value === 'resolved') get('queue-filter').value = 'open';
+    select(nextOpen);
+  }));
+  body.append(actions);
+  body.querySelectorAll('details').forEach(node => { node.open = open.has(node.firstChild.textContent); });
+  updatePreview();
+  if (focus) heading.focus({ preventScroll: true });
+}
+function needsReview(index) {
+  return ['pending', 'deferred'].includes(state[index].decision);
+}
+function renderQueue() {
+  const filter = get('queue-filter').value;
+  const queue = get('queue');
+  queue.replaceChildren(...cases.flatMap((item, i) => {
+    if ((filter === 'open' && !needsReview(i)) || (filter === 'resolved' && needsReview(i))) return [];
+    const tab = button(item.name, () => select(i));
+    tab.dataset.decision = state[i].decision;
+    tab.append(element('span', item.label, 'queue-description'));
+    tab.append(element('span', names[state[i].decision], 'queue-status'));
+    tab.setAttribute('aria-pressed', String(i === active));
+    tab.setAttribute('aria-label', item.name + ' · ' + names[state[i].decision]);
+    return [tab];
+  }));
+  if (!queue.firstChild) queue.append(element('p', 'No suggestions in this view.', 'muted'));
+}
+function render(focus = false) {
+  renderDraft();
+  renderQueue();
+  const applied = state.filter(item => item.decision === 'applied').length;
+  const kept = state.filter(item => item.decision === 'kept').length;
+  const deferred = state.filter(item => item.decision === 'deferred').length;
+  const done = applied + kept;
+  const progress = done + ' of ' + cases.length + ' reviewed';
+  get('progress').textContent = cases.length ? progress : 'No suggestions';
+  get('review-meter').max = Math.max(1, cases.length);
+  get('review-meter').value = done;
+  get('mode-label').textContent = source === null ? 'Sample · simulated AI' : 'Your draft · local checks';
+  get('draft-heading').textContent = source === null ? 'Sample research summary' : 'Your document';
+  get('current-document').textContent = source === null ? 'Sample research summary · simulated AI' : 'Your document · local checks';
+  const finalText = draftText();
+  get('export-text').textContent = finalText;
+  get('final-count').textContent = textCount(finalText);
+  const remaining = cases.length - done;
+  get('finish-progress').textContent = !cases.length ? 'No suggestions found'
+    : remaining ? remaining + (remaining === 1 ? ' suggestion still open' : ' suggestions still open')
+      : 'All suggestions reviewed';
+  get('edit-final').disabled = finalText.length > get('draft-input').maxLength;
+  get('overview-progress').textContent = cases.length ? progress : 'No suggestions found';
+  get('completion').max = Math.max(1, cases.length);
+  get('completion').value = done;
+  get('start-review').textContent = !cases.length ? 'View draft' : done === cases.length ? 'View reviewed draft'
+    : history.length ? 'Resume review' : 'Start review';
+  get('history-summary').textContent = applied + ' applied · ' + kept + ' kept original · ' + deferred + ' deferred';
+  get('open-batch').disabled = !cases.some((item, i) => item.formatting && ['pending', 'deferred'].includes(state[i].decision));
+  renderReview(focus);
+  get('undo').disabled = !undoStack.length;
+  const openSuggestion = index => {
+    goTo('review');
+    select(index);
+  };
+  get('history-status').replaceChildren(...cases.map((item, index) => {
+    const row = element('li', undefined, 'entry');
+    const label = element('span', item.name);
+    label.append(element('small', names[state[index].decision], 'queue-status'));
+    const open = button('Review', () => openSuggestion(index));
+    open.setAttribute('aria-label', 'Review ' + item.name);
+    row.append(label, open);
+    return row;
+  }));
+  if (!cases.length) get('history-status').append(element('li', 'No suggestions to review.', 'muted'));
+  get('download-log').disabled = !history.length;
+  const log = get('log');
+  log.replaceChildren();
+  if (!history.length) log.append(element('p', 'No activity yet. Review a suggestion to record your first decision.', 'empty'));
+  for (const event of [...history].reverse()) {
+    const row = element('div', undefined, 'entry');
+    const description = element('span', cases[event.index].name + ' · ' + event.message);
+    if (event.note) description.append(element('small', event.note, 'event-note'));
+    row.append(description, button('Go to suggestion', () => openSuggestion(event.index)));
+    log.append(row);
+  }
+}
+// Review actions
+const riskDialog = get('risk-dialog');
+function applyCurrent() {
+  if (source === null && active === 1 && state[active].candidate === 'proposal') {
+    get('risk-compare').replaceChildren(
+      element('p', 'Original: ' + cases[active].before),
+      element('p', 'Proposed: ' + candidate(active))
+    );
+    riskDialog.returnValue = '';
+    riskDialog.showModal();
+    return;
+  }
+  makeDecision([active], 'applied', 'Applied ' + candidateLabel(active));
+}
+riskDialog.addEventListener('close', () => {
+  if (riskDialog.returnValue === 'apply') {
+    makeDecision([active], 'applied', 'Applied stronger wording');
+  } else if (riskDialog.returnValue === 'evidence' && !evidence) {
+    showEvidence();
+  } else if (riskDialog.returnValue === 'evidence') {
+    get('source-evidence').scrollIntoView({ block: 'nearest' });
+    get('evidence-toggle').focus({ preventScroll: true });
+  }
+});
+get('queue-filter').addEventListener('change', renderQueue);
+const batch = get('batch');
+const selectedFormatting = () => [...get('batch-items').querySelectorAll('input:checked')].map(input => Number(input.value));
+get('open-batch').addEventListener('click', () => {
+  const list = get('batch-items');
+  list.replaceChildren();
+  cases.forEach((item, i) => {
+    if (!item.formatting || !['pending', 'deferred'].includes(state[i].decision)) return;
+    const label = element('label', undefined, 'batch-option');
+    const checkbox = element('input');
+    checkbox.type = 'checkbox';
+    checkbox.value = i;
+    checkbox.addEventListener('change', () => { get('apply-batch').disabled = !selectedFormatting().length; });
+    const description = element('span', item.label);
+    const diff = element('small');
+    if (source === null) {
+      appendDiff(diff, changeParts(item.before, item.proposal), true, true);
+      description.append(diff, element('small', 'Revised: ' + item.proposal));
+    } else description.append(element('small', item.proposal ? 'Replace with one space' : 'Remove spacing'));
+    label.append(checkbox, description);
+    list.append(label);
+  });
+  get('apply-batch').disabled = true;
+  batch.showModal();
+});
+get('close-batch').addEventListener('click', () => batch.close());
+get('apply-batch').addEventListener('click', () => {
+  const indices = selectedFormatting();
+  if (!indices.length) return;
+  batch.close();
+  active = indices[0];
+  evidence = false;
+  makeDecision(indices, 'applied', 'Applied in formatting batch');
+});
+get('undo').addEventListener('click', () => {
+  const transaction = undoStack.pop();
+  if (!transaction) return;
+  active = transaction[0].index;
+  evidence = false;
+  for (const change of transaction) {
+    state[change.index].decision = change.decision;
+    state[change.index].confirmed = change.confirmed;
+    record(change.index, 'Undid decision · ' + names[change.decision]);
+  }
+  render(true);
+  announce('Undid last decision' + (transaction.length > 1 ? ' · ' + transaction.length + ' formatting edits' : ''));
+});
+// Writing notes and browser storage
+const goalInputs = [...document.querySelectorAll('[data-goal]')];
+const planFields = [
+  ['plan-purpose', 'Audience and purpose'],
+  ['plan-claim', 'Main claim'],
+  ['plan-evidence', 'Evidence and limits']
+];
+const draftInput = get('draft-input');
+const writingKey = 'margin-writing-v1';
+
+function textCount(value) {
+  const words = value.match(/\S+/g)?.length ?? 0;
+  return words + (words === 1 ? ' word' : ' words') + ' · ' + value.length + ' characters';
+}
+function renderWriting() {
+  get('draft-count').textContent = textCount(draftInput.value);
+  const notes = planFields.flatMap(([id, label]) => {
+    const value = get(id).value.trim();
+    return value ? [element('dt', label), element('dd', value)] : [];
+  });
+  get('plan-reference').replaceChildren(...notes);
+  get('plan-empty').hidden = notes.length > 0;
+}
+function saveWriting(statusId) {
+  renderWriting();
+  try {
+    localStorage.setItem(writingKey, JSON.stringify({
+      draft: draftInput.value,
+      plan: Object.fromEntries(planFields.map(([id]) => [id, get(id).value])),
+      goals: Object.fromEntries(goalInputs.map(input => [input.dataset.goal, input.checked]))
+    }));
+    get(statusId).textContent = 'Saved in this browser';
+  } catch {
+    for (const id of ['draft-save', 'plan-save']) get(id).textContent = 'Browser storage is unavailable';
+  }
+}
+try {
+  const saved = JSON.parse(localStorage.getItem(writingKey));
+  if (typeof saved?.draft === 'string') draftInput.value = saved.draft.slice(0, draftInput.maxLength);
+  for (const [id] of planFields) {
+    const field = get(id);
+    if (typeof saved?.plan?.[id] === 'string') field.value = saved.plan[id].slice(0, field.maxLength);
+  }
+  for (const input of goalInputs) {
+    if (typeof saved?.goals?.[input.dataset.goal] === 'boolean') input.checked = saved.goals[input.dataset.goal];
+  }
+  if (saved) {
+    get('draft-save').textContent = 'Saved in this browser';
+    get('plan-save').textContent = 'Saved in this browser';
+  }
+} catch {
+  for (const id of ['draft-save', 'plan-save']) get(id).textContent = 'Saved writing could not be loaded';
+}
+renderWriting();
+draftInput.addEventListener('input', () => {
+  get('input-status').textContent = '';
+  saveWriting('draft-save');
+});
+for (const [id] of planFields) get(id).addEventListener('input', () => saveWriting('plan-save'));
+goalInputs.forEach(input => input.addEventListener('change', () => {
+  updatePreview();
+  saveWriting('plan-save');
+}));
+get('edit-final').addEventListener('click', () => {
+  const text = draftText();
+  if (draftInput.value && draftInput.value !== text &&
+    !window.confirm('Replace the text in Write with this version?')) return;
+  draftInput.value = text;
+  get('input-status').textContent = '';
+  saveWriting('draft-save');
+  goTo('overview');
+  draftInput.focus();
+});
+// Draft entry and export
+function startDocument(text) {
+  if ((history.length || state.some(entry => entry.manual || entry.note.trim())) &&
+    !window.confirm('Start a new review and clear the current decisions?')) return false;
+  source = text;
+  cases = source === null ? sampleCases : inspectDraft(source);
+  state = fresh();
+  get('queue-filter').value = 'all';
+  history = [];
+  undoStack = [];
+  active = 0;
+  view = 'revised';
+  evidence = false;
+  delete get('suggestion-detail').dataset.case;
+  render();
+  return true;
+}
+get('draft-form').addEventListener('submit', event => {
+  event.preventDefault();
+  const text = get('draft-input').value;
+  if (!text.trim()) {
+    get('input-status').textContent = 'Enter a draft to check.';
+    get('draft-input').focus();
+    return;
+  }
+  if (text === source || startDocument(text)) {
+    get('input-status').textContent = '';
+    goTo('review');
+    announce(cases.length ? cases.length + (cases.length === 1 ? ' suggestion found.' : ' suggestions found.')
+      : 'No suggestions found by the current checks.');
+  }
+});
+get('sample-load').addEventListener('click', () => {
+  if (startDocument(null)) goTo('review');
+});
+get('reset').addEventListener('click', () => {
+  if (startDocument(source)) announce('Review restarted.');
+});
+function downloadText(name, text) {
+  const url = URL.createObjectURL(new Blob([text], { type: 'text/plain;charset=utf-8' }));
+  const download = element('a');
+  download.href = url;
+  download.download = name;
+  download.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+get('download').addEventListener('click', () => downloadText('revised-draft.txt', draftText()));
+get('download-log').addEventListener('click', () => {
+  const rows = history.map((event, i) => {
+    const heading = (i + 1) + '. ' + cases[event.index].label + ' — ' + event.message;
+    return [heading, event.wording !== undefined ? 'Resulting wording: ' + event.wording : '',
+      event.evidenceChecked ? 'Source evidence opened before decision.' : '',
+      event.note ? 'Decision note: ' + event.note : ''].filter(Boolean).join('\n');
+  });
+  downloadText('review-log.txt', ['Review log · ' + get('mode-label').textContent, ...rows].join('\n\n'));
+});
+async function copyDraft(statusId) {
+  const text = draftText();
+  try {
+    await navigator.clipboard.writeText(text);
+    get(statusId).textContent = 'Draft copied.';
+  } catch {
+    window.prompt('Copy your revised draft:', text);
+  }
+}
+get('copy').addEventListener('click', () => copyDraft('status'));
+get('copy-final').addEventListener('click', () => copyDraft('finish-status'));
+render();
+syncPage();
+document.documentElement.classList.add('interactive');
+</script>
+</body>
+
+</html>
