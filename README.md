@@ -1,6 +1,6 @@
 # AI Writing Review Prototype
 
-**README prose word count: 393**
+**README prose word count: 414**
 
 ## Status and stack
 
@@ -20,10 +20,10 @@ Planning notes, revision goals and text in **Write** are saved in that browser w
 
 ## Development record
 
-I carried my A1 question into A2: when can explanations help students judge whether to rely on AI advice? I chose academic writing as the setting and developed the interaction around checking a proposed edit against its evidence before accepting, keeping or rewriting it. During development I asked for a more complete workflow and separate pages, and provided the final HTML from my VS Code workspace.
+In A1, I asked when explanations help students decide whether to follow AI advice. I kept academic writing as the setting for A2. The example I wanted the prototype to show is simple: “will improve” reads smoothly, but it makes a stronger claim than “may improve”. I wanted the writer to see that difference and check the pilot-study sentence before deciding.
 
-The initial prototype compared wording and supported individual decisions and undo. Later revisions added alternatives, editable suggestions, selective formatting batches, an evidence checkpoint, decision notes and log export. The latest version adds planning notes, a draft editor with browser storage, and a separate final-draft view. A scripted check of the earlier prototype verified the evidence highlight, preservation of the original wording, and history entries. This README was checked against the current HTML source.
+The first version showed a comparison and let the writer apply or decline an edit. I wanted more room to inspect the text and revisit decisions, so I asked for separate pages and a fuller review workflow. The final version includes planning notes, draft editing, revision history and a separate page for the finished draft. A scripted check of the earlier prototype confirmed that the evidence was highlighted, the original wording was kept, and both actions appeared in History. The instructions above were checked against the final HTML.
 
 ## AI assistance
 
-I set the research question and directed the design and revisions. I used ChatGPT and Codex for assistance with implementation, code fixes, documentation and scripted checks. I reviewed the prototype and requested revisions when its workflow and presentation did not yet fit the project.
+I chose the question, set the scope and reviewed the interface as it developed. I used ChatGPT and Codex to help implement and debug the prototype, organise the documentation and run scripted checks. I asked for changes where the first versions did not give the writer enough control or made the workflow hard to follow.
