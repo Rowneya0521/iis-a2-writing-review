@@ -1,6 +1,6 @@
 # AI Writing Review Prototype
 
-**README prose word count: 299**
+**README prose word count: 393**
 
 ## Status and stack
 
@@ -20,8 +20,10 @@ Planning notes, revision goals and text in **Write** are saved in that browser w
 
 ## Development record
 
+I carried my A1 question into A2: when can explanations help students judge whether to rely on AI advice? I chose academic writing as the setting and developed the interaction around checking a proposed edit against its evidence before accepting, keeping or rewriting it. During development I asked for a more complete workflow and separate pages, and provided the final HTML from my VS Code workspace.
+
 The initial prototype compared wording and supported individual decisions and undo. Later revisions added alternatives, editable suggestions, selective formatting batches, an evidence checkpoint, decision notes and log export. The latest version adds planning notes, a draft editor with browser storage, and a separate final-draft view. A scripted check of the earlier prototype verified the evidence highlight, preservation of the original wording, and history entries. This README was checked against the current HTML source.
 
 ## AI assistance
 
-ChatGPT assisted with interface design, implementation, documentation and scripted checks of the evidence and decision flow.
+I set the research question and directed the design and revisions. I used ChatGPT and Codex for assistance with implementation, code fixes, documentation and scripted checks. I reviewed the prototype and requested revisions when its workflow and presentation did not yet fit the project.
