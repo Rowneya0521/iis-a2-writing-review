@@ -1,7 +1,5 @@
 # AI Writing Review Prototype
 
-**README prose word count: 482**
-
 ## Status and stack
 
 The prototype is a standalone HTML file with embedded CSS and JavaScript. The sample research summary uses scripted AI suggestions and replies. For your own draft, JavaScript rules flag selected spacing, punctuation and wording patterns. No API key, installation or server is required.
@@ -12,9 +10,10 @@ Open `IIS-A2-web-prototype.html` in a browser with JavaScript enabled.
 
 1. In **Plan**, enter your audience and purpose, main claim, and evidence and limits. Set revision goals and select **Go to writing**. Your notes appear beside the editor in **Write**.
 2. In **Write**, enter an English draft and select **Check my draft**, or choose **Use sample instead** to explore scripted suggestions.
-3. In **Review**, inspect suggested wording and decide what to apply, keep or defer. To try the evidence checkpoint in the sample, select **Claim strength → Apply suggestion → Check source evidence**, then **Keep original**.
-4. In **History**, look for the evidence check and the decision. Select **Export review log** to save the activity as text.
-5. In **Finish**, select **Download .txt** or **Copy final draft**. Select **Continue writing from this version** to transfer the revision to **Write**.
+3. In **Review**, select **Grammar** or **Claim strength** in the sample and open **Check grammar rule**. Grammar compares plural “The results show” and singular “The result shows”. Claim strength compares “may improve” and “will improve” using the same sentence. Opening the rule leaves the draft and suggestion status unchanged. The explanations and examples are embedded in the HTML.
+4. Apply the **Grammar** suggestion to use “The results show”. For **Claim strength**, choose **Apply suggestion → Check source evidence** to highlight the sentence about a small pilot, then **Keep original** if you want to retain “may improve”.
+5. In **History**, look for the evidence check and the decision. Select **Export review log** to save the activity as text.
+6. In **Finish**, select **Download .txt** or **Copy final draft**. Select **Continue writing from this version** to transfer the revision to **Write**.
 
 Planning notes, revision goals and text in **Write** are saved in that browser when storage is available. Reloading resets review decisions and history. Export anything you want to retain before reloading.
 
@@ -27,6 +26,18 @@ The first version showed a comparison and let the writer apply or decline an edi
 - [Final prototype snapshot](https://github.com/Rowneya0521/iis-a2-writing-review/commit/9f9d6cb846d559e0bbc0c3265962e5a439be6c0d)
 - [Documented the five-page workflow](https://github.com/Rowneya0521/iis-a2-writing-review/commit/7e7e8c91aa289abd2d9a90e01406d915b49cf9d7)
 - [Clarified the design contribution and AI assistance](https://github.com/Rowneya0521/iis-a2-writing-review/commit/045e087604141d7fd49894ebc626d946f42ef006)
+
+## Grammar reference verification
+
+Codex opened the updated standalone HTML in Chrome and exercised the built-in sample through the browser interface.
+
+| Check | Observed result |
+| --- | --- |
+| Open **Check grammar rule** on **Grammar** and **Claim strength** | Both cards displayed their explanations and two examples. Opening each rule left its original sentence in the draft and its status at **Pending**. |
+| Apply the **Grammar** suggestion | The draft changed to “The results show”. History recorded **Grammar · Applied AI suggestion**. |
+| Check the evidence for **Claim strength**, then keep the original | The interface reported the source highlight for “small pilot”. History recorded **Opened source evidence** and **Kept original** for **Claim strength**. The final draft retained “may improve” alongside the applied grammar correction. |
+
+This run exercised the sample workflows in Chrome and did not involve human participants. The simulated DOM check described in the development record was performed on the earlier prototype.
 
 ## AI assistance
 
