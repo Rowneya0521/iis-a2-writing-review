@@ -1,5 +1,7 @@
 # AI Writing Review Prototype
 
+**README prose word count: 677**
+
 ## Status and stack
 
 The prototype is a standalone HTML file with embedded CSS and JavaScript. The sample research summary uses scripted AI suggestions and replies. For your own draft, JavaScript rules flag selected spacing, punctuation and wording patterns. No API key, installation or server is required.
