@@ -1287,7 +1287,10 @@ const sampleCases = [
     before: 'The results shows a reduction in processing time.',
     proposal: 'The results show a reduction in processing time.',
     hint: 'Check whether the subject is singular or plural.',
-    full: '“Results” is plural, so it takes “show” in the present tense. The revision keeps the original claim.',
+    grammarRule: {
+      explanation: '“Results” is a plural subject. In the simple present, use the base verb “show” with a plural subject. Add “-s” for a third-person singular subject such as “result”.',
+      examples: ['Plural: The results show a reduction in processing time.', 'Singular: The result shows a reduction in processing time.'],
+    },
     check: 'The change fixes agreement while preserving the reported reduction.',
   },
   {
@@ -1295,7 +1298,10 @@ const sampleCases = [
     before: 'The method may improve accuracy on unseen data.',
     proposal: 'The method will improve accuracy on unseen data.',
     hint: 'Compare the certainty expressed by the two verbs.',
-    full: '“May” expresses a possibility. “Will” makes a stronger prediction about unseen data. The preceding sentence says the evaluation is preliminary, so the original qualifier still matters.',
+    grammarRule: {
+      explanation: '“May” and “will” are both grammatical before the base verb “improve”. “May” expresses a possibility. “Will” presents the improvement as a more certain prediction. Use Highlight source evidence to check what the small pilot supports.',
+      examples: ['Possibility: The method may improve accuracy on unseen data.', 'Stronger prediction: The method will improve accuracy on unseen data.'],
+    },
     check: 'Yes. “Will” makes the claim more definite even though the draft only reports a small pilot.',
   },
   {
@@ -1618,7 +1624,16 @@ function renderReview(focus) {
   if (entry.candidate === 'proposal') {
     const hint = element('div', undefined, 'hint');
     hint.append(element('b', 'Quick hint'), item.hint);
-    body.append(hint, disclosure('Show full explanation', item.full));
+    body.append(hint);
+    if (!item.grammarRule) body.append(disclosure('Show full explanation', item.full));
+  }
+  if (item.grammarRule) {
+    const { explanation, examples } = item.grammarRule;
+    const rule = disclosure('Check grammar rule', explanation);
+    const list = element('ul');
+    list.append(...examples.map(example => element('li', example)));
+    rule.append(list);
+    body.append(rule);
   }
   if (entry.candidate in constraints) {
     const reply = element('div', undefined, 'reply');
